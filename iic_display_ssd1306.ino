@@ -154,7 +154,6 @@ display.display();
   delay(2000); // Pause for 2 seconds
 display.clearDisplay();
 //display.invertDisplay(1);
-display.display();
 }
 
 void loop() {
@@ -170,7 +169,7 @@ void loop() {
   randomSeed(analogRead(colour)); i = 0; 
   display.fillRect(0,0,WIDTH,HEIGHT, colour);
   colour = !colour;
-  fun();
+  scan();
   }
   display.display();  i++;
 }
@@ -181,6 +180,42 @@ void fun()
 //display.drawBitmap(0,0,logo,128,64,colour);
 display.drawBitmap(32,0,apple,64,64,colour);
 display.display();delay(600);
-display.drawBitmap(32,0,apple,64,64,!colour);
+//display.drawBitmap(32,0,apple,64,64,!colour);
 //display.setCursor(32,24);//display.setTextColor(2);display.println("GoPro");display.display();delay(500);
 }
+
+void scan(){
+    int nDevices = 0;
+display.setTextSize(1); display.setTextColor(2); display.setCursor(0,0);
+  display.println("Scanning...");
+
+  for (byte address = 1; address < 127; ++address) {
+
+    Wire.beginTransmission(address);
+    byte error = Wire.endTransmission();
+
+    if (error == 0) {
+      display.print("I2C device found at address 0x");
+      if (address < 16) {
+        display.print("0");
+      }
+      display.print(address, HEX);
+      display.println("  !");
+
+      ++nDevices;
+    } else if (error == 4) {
+      display.print("Unknown error at address 0x");
+      if (address < 16) {
+        display.print("0");
+      }
+      display.println(address, HEX);
+    }
+  }
+  if (nDevices == 0) {
+    display.println("No I2C devices found\n");
+  } else {
+    display.println("done\n");
+  }
+  display.display();
+  delay(5000); // Wait 5 seconds for next scan
+  }

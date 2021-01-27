@@ -195,16 +195,16 @@ display.setTextSize(1); display.setTextColor(2); display.setCursor(0,0);
     byte error = Wire.endTransmission();
 
     if (error == 0) {
-      display.print("I2C device found at address 0x");
+      display.print("I2C device: 0x");
       if (address < 16) {
         display.print("0");
       }
       display.print(address, HEX);
-      display.println("  !");
+      display.println();
 
       ++nDevices;
     } else if (error == 4) {
-      display.print("Unknown error at address 0x");
+      display.print("Unknown error: 0x");
       if (address < 16) {
         display.print("0");
       }
@@ -214,7 +214,9 @@ display.setTextSize(1); display.setTextColor(2); display.setCursor(0,0);
   if (nDevices == 0) {
     display.println("No I2C devices found\n");
   } else {
-    display.println("done\n");
+    display.println();
+    display.print(nDevices);
+    display.println(" devices found");
   }
   display.display();
   delay(5000); // Wait 5 seconds for next scan

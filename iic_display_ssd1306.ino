@@ -184,6 +184,7 @@ display.clearDisplay();
   display.fillCircle(WIDTH - random(WIDTH)/2,HEIGHT -random(HEIGHT)/2,i,colour);
   display.display();
     }
+      display.fillRect(0,0,WIDTH,HEIGHT, colour);  display.display();
 }
 
 void loop() {
@@ -256,7 +257,7 @@ int read(byte address){
 
   Wire.beginTransmission(0x0B);
   Wire.write(byte(address));
-  Wire.endTransmission();  Wire.requestFrom(0x0B, 2);delay(60);
+  Wire.endTransmission();  Wire.requestFrom(0x0B, 2);delay(40);
    int k = 0;
    byte b1=0;
    byte b2 = 0;
@@ -267,7 +268,7 @@ int read(byte address){
   cli();
   k = b2<<8;  k+=b1;
   sei();
-  delay(40);
+  delay(10);
   while (Wire.available()){Wire.read();}
   return k;
 

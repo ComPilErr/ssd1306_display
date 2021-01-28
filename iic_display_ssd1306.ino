@@ -9,7 +9,13 @@ Adafruit_SSD1306 display(WIDTH, HEIGHT,&Wire);
 bool colour = 1;
 uint16_t i = 0;
 byte register_to_call = 0;
-int k = 0;
+
+int voltage=0;
+int current=0;
+int capasity=0;
+int base_capasity=0;
+int temp=0;
+int cycle=0;
 
 class Ma_Item
 {
@@ -170,59 +176,100 @@ display.display();
 display.clearDisplay();
 //display.invertDisplay(1);
   scan();
-}
 
-void loop() {
-  //display.drawPixel(random(WIDTH), random(HEIGHT), colour);
-  //display.drawLine(random(WIDTH),random(HEIGHT),random(WIDTH), random(HEIGHT), colour);
-  //display.fillRect(random(WIDTH),random(HEIGHT),random(WIDTH), random(HEIGHT), colour);
+  for(int i=0;i<24;i++){
   display.fillCircle(random(WIDTH)/2,random(HEIGHT)/2,i,colour);
   display.fillCircle(WIDTH - random(WIDTH)/2,random(HEIGHT)/2,i,colour);
   display.fillCircle(random(WIDTH)/2,HEIGHT - random(HEIGHT)/2,i,colour);
   display.fillCircle(WIDTH - random(WIDTH)/2,HEIGHT -random(HEIGHT)/2,i,colour);
+  display.display();
+    }
+}
 
-  if(i>23){ //
+void loop() {
+
+if(i>23){ //
+  processing();
   randomSeed(analogRead(colour)); i = 0; 
   display.fillRect(0,0,WIDTH,HEIGHT, colour);
-  colour = !colour;
+ // display.display();
+//colour = !colour;
+ clear();
+    
+  show();
 
-  clear();
-
-  read(line[k].ma_name,line[k].ma_val);
-  k++;  if(k>LINES) k = 0;
-
-  display.display(); delay(2000);
-  }
-  display.display();  i++;
+ display.display();
+}//
+    i++;
 }
+
+void processing()
+{
+
+  temp =          read(0x08);
+  voltage =       read(0x09);
+  current =       read(0x0A);
+  capasity =      read(0x0F); 
+  base_capasity = read(0x10);
+  cycle = read(0x3c);
+
+  }
+
+void show(){
+//  if (name == "temperature:") val = val/10 - 273.15;
+//  if (name == "voltage:") val = val/1000;  
+  
+  display.setTextSize(1); display.setTextColor(2); display.setCursor(80,0);
+  display.print("temp:");
+  display.setTextSize(1); display.setTextColor(2); display.setCursor(80,10);
+  display.print( ( (temp/10) - 273.15) );
+
+  display.setTextSize(1); display.setTextColor(2); display.setCursor(0,0);
+  display.print("voltage:");
+  display.setTextSize(2); display.setTextColor(2); display.setCursor(0,12);
+  display.print( (float)voltage/1000 );
+
+  display.setTextSize(1); display.setTextColor(2); display.setCursor(0,34);
+  display.print("current:");
+  display.setTextSize(2); display.setTextColor(2); display.setCursor(0,46);
+  display.print( (float)current/1000 );
+
+  display.setTextSize(1); display.setTextColor(2); display.setCursor(76,34);
+  display.print("charge:");
+  display.setTextSize(2); display.setTextColor(2); display.setCursor(78,46);
+  display.print( (int) (( (float) capasity/base_capasity )*100));
+
+  display.setTextSize(1); display.setTextColor(2); display.setCursor(80,24);
+  display.print(cycle);
+
+
+
+  }
+
 
 void clear(){
   display.clearDisplay();
   display.setCursor(0,0); 
   }
 
-void read(String name, byte address){
+int read(byte address){
+
   Wire.beginTransmission(0x0B);
   Wire.write(byte(address));
-  Wire.endTransmission();  Wire.requestFrom(0x0B, 2);delay(20);
+  Wire.endTransmission();  Wire.requestFrom(0x0B, 2);delay(60);
    int k = 0;
    byte b1=0;
    byte b2 = 0;
-  //display.print(name);
+
     while (Wire.available()){
     b1 =  Wire.read();
-    b2 =  Wire.read();
-  //display.print(b1);  display.print(" "); display.print(b2);
-  }
-  k = b2<<8;
-  k+=b1;
-  display.setTextSize(2); display.setTextColor(2); display.setCursor(38,24);
-  display.print(k);
-  display.setTextSize(1); display.setTextColor(2); display.setCursor(38,0);
-  display.print(name);
-  //display.display();
-  delay(10);
-      while (Wire.available()){Wire.read();}
+    b2 =  Wire.read();  }
+  cli();
+  k = b2<<8;  k+=b1;
+  sei();
+  delay(40);
+  while (Wire.available()){Wire.read();}
+  return k;
 
   }
 

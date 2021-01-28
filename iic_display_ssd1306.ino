@@ -4,10 +4,24 @@
 #define WIDTH 128
 #define HEIGHT 64
 #define ADDRESS 0x3C
+#define LINES 3
 Adafruit_SSD1306 display(WIDTH, HEIGHT,&Wire);
 bool colour = 1;
 uint16_t i = 0;
 byte register_to_call = 0;
+int k = 0;
+
+class Ma_Item
+{
+  public:
+  String ma_name;
+  int ma_val;
+  Ma_Item(String a, int b){
+    ma_name = a;
+    ma_val = b;}
+  };
+
+static const Ma_Item line[]{Ma_Item("temperature:",0x08),Ma_Item("capasity:",0x0F),Ma_Item("current:",0x0A),Ma_Item("voltage:",0x09)};
 
 static const unsigned char PROGMEM dick[]{
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -155,6 +169,7 @@ display.display();
   delay(2000); // Pause for 2 seconds
 display.clearDisplay();
 //display.invertDisplay(1);
+  scan();
 }
 
 void loop() {
@@ -170,18 +185,13 @@ void loop() {
   randomSeed(analogRead(colour)); i = 0; 
   display.fillRect(0,0,WIDTH,HEIGHT, colour);
   colour = !colour;
-  scan();
+
   clear();
-  for(;;){
-  read("temp: ",0x08);
-  read("capasity: ",0x0F);
-  read("volt: ",0x09);
-  read("bank1: ",0x3f);  read("bank2: ",0x3e);  read("bank3: ",0x3d); read("bank4: ",0x3c); 
-  read("current: ",0x0A);
-  display.display();
-  clear();
-  }
-  
+
+  read(line[k].ma_name,line[k].ma_val);
+  k++;  if(k>LINES) k = 0;
+
+  display.display(); delay(2000);
   }
   display.display();  i++;
 }
@@ -198,7 +208,7 @@ void read(String name, byte address){
    int k = 0;
    byte b1=0;
    byte b2 = 0;
-  display.print(name);
+  //display.print(name);
     while (Wire.available()){
     b1 =  Wire.read();
     b2 =  Wire.read();
@@ -206,8 +216,10 @@ void read(String name, byte address){
   }
   k = b2<<8;
   k+=b1;
-  display.print(" "); display.print(k);
-  display.println();
+  display.setTextSize(2); display.setTextColor(2); display.setCursor(38,24);
+  display.print(k);
+  display.setTextSize(1); display.setTextColor(2); display.setCursor(38,0);
+  display.print(name);
   //display.display();
   delay(10);
       while (Wire.available()){Wire.read();}

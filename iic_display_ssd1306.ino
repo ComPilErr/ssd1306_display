@@ -7,6 +7,7 @@
 Adafruit_SSD1306 display(WIDTH, HEIGHT,&Wire);
 bool colour = 1;
 uint16_t i = 0;
+byte register_to_call = 0;
 
 static const unsigned char PROGMEM dick[]{
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -170,9 +171,48 @@ void loop() {
   display.fillRect(0,0,WIDTH,HEIGHT, colour);
   colour = !colour;
   scan();
+  clear();
+  for(;;){
+  read("temp: ",0x08);
+  read("capasity: ",0x0F);
+  read("volt: ",0x09);
+  read("bank1: ",0x3f);  read("bank2: ",0x3e);  read("bank3: ",0x3d); read("bank4: ",0x3c); 
+  read("current: ",0x0A);
+  display.display();
+  clear();
+  }
+  
   }
   display.display();  i++;
 }
+
+void clear(){
+  display.clearDisplay();
+  display.setCursor(0,0); 
+  }
+
+void read(String name, byte address){
+  Wire.beginTransmission(0x0B);
+  Wire.write(byte(address));
+  Wire.endTransmission();  Wire.requestFrom(0x0B, 2);delay(20);
+   int k = 0;
+   byte b1=0;
+   byte b2 = 0;
+  display.print(name);
+    while (Wire.available()){
+    b1 =  Wire.read();
+    b2 =  Wire.read();
+  //display.print(b1);  display.print(" "); display.print(b2);
+  }
+  k = b2<<8;
+  k+=b1;
+  display.print(" "); display.print(k);
+  display.println();
+  //display.display();
+  delay(10);
+      while (Wire.available()){Wire.read();}
+
+  }
 
 void fun()
 {//display.setTextSize(2); display.setTextColor(2); display.setCursor(38,24);
@@ -219,5 +259,5 @@ display.setTextSize(1); display.setTextColor(2); display.setCursor(0,0);
     display.println(" devices found");
   }
   display.display();
-  delay(5000); // Wait 5 seconds for next scan
+  delay(1000); // Wait 5 seconds for next scan
   }

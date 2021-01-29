@@ -206,13 +206,13 @@ if(i>23){ //
 
 void processing()
 {
-
-  temp =          read(0x08);
-  voltage =       read(0x09);
-  current =       read(0x0A);
-  capasity =      read(0x0F); 
-  base_capasity = read(0x10);
-  cycle = read(0x3c);
+  int 
+  x = read(0x08);  temp = (x==-1) ? temp:x;
+  x = read(0x09);voltage =(x==-1) ? voltage:x;
+  x = read(0x0A);current =(x==-1) ? current:x;
+  x = read(0x0F);capasity =(x==-1) ? capasity:x;
+  x = read(0x10);base_capasity =(x==-1) ? base_capasity:x;
+  x = read(0x3c);cycle =  (x==-1) ? cycle:x;
 
   }
 
@@ -255,22 +255,22 @@ void clear(){
 
 int read(byte address){
 
-
+  while (Wire.available()){Wire.read();delay(10);}
   Wire.beginTransmission(0x0B);
   Wire.write(byte(address));
-  Wire.endTransmission();  Wire.requestFrom(0x0B, 2);delay(40);
-   int k = 0;
-   byte b1=0;
+  Wire.endTransmission();  Wire.requestFrom(0x0B, 2);delay(10);
+   int k = 0;int i = 0;
+   byte b1 = 0;
    byte b2 = 0;
-    while (Wire.available()){
-    b1 =  Wire.read();
-      delay(20);
-    b2 =  Wire.read();  }
-  cli();
-  k = b2<<8;  k+=b1;
-  sei();
-  while (Wire.available()){Wire.read();}
-  return k;
+
+    if (Wire.available()){    
+      b1 =  Wire.read();      delay(10);
+          if (Wire.available()){
+              b2 =  Wire.read(); 
+              cli();  k = b2<<8;  k+=b1;  sei(); return k; }
+      }
+      
+  return -1;
   }
 
 void fun()

@@ -217,13 +217,11 @@ void processing()
   }
 
 void show(){
-//  if (name == "temperature:") val = val/10 - 273.15;
-//  if (name == "voltage:") val = val/1000;  
   
   display.setTextSize(1); display.setTextColor(2); display.setCursor(80,0);
   display.print("temp:");
   display.setTextSize(1); display.setTextColor(2); display.setCursor(80,10);
-  display.print( ( (temp/10) - 273.15) );
+  display.print( ( (((float)temp)/10)-273.15 ) );
 
   display.setTextSize(1); display.setTextColor(2); display.setCursor(0,0);
   display.print("voltage:");
@@ -239,6 +237,8 @@ void show(){
   display.print("charge:");
   display.setTextSize(2); display.setTextColor(2); display.setCursor(78,46);
   display.print( (int) (( (float) capasity/base_capasity )*100));
+  display.setTextSize(1); display.setTextColor(2); display.setCursor(110,54);
+  display.print("%");
 
   display.setTextSize(1); display.setTextColor(2); display.setCursor(80,24);
   display.print(cycle);
@@ -255,23 +255,22 @@ void clear(){
 
 int read(byte address){
 
+
   Wire.beginTransmission(0x0B);
   Wire.write(byte(address));
   Wire.endTransmission();  Wire.requestFrom(0x0B, 2);delay(40);
    int k = 0;
    byte b1=0;
    byte b2 = 0;
-
     while (Wire.available()){
     b1 =  Wire.read();
+      delay(20);
     b2 =  Wire.read();  }
   cli();
   k = b2<<8;  k+=b1;
   sei();
-  delay(10);
   while (Wire.available()){Wire.read();}
   return k;
-
   }
 
 void fun()

@@ -104,7 +104,7 @@ void show(){
   display.print("charge:");
   display.setTextSize(2); display.setTextColor(2); display.setCursor(78,46);
   display.print( (int) (( (float) capasity/base_capasity )*100));
-  display.setTextSize(1); display.setTextColor(2); display.setCursor(110,54);
+  display.setTextSize(1); display.setTextColor(2); display.setCursor(114,54);
   display.print("%");
 
   display.setTextSize(1); display.setTextColor(2); display.setCursor(80,24);

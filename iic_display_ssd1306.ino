@@ -59,6 +59,7 @@ if(i>23){ //
   show();
 
  display.display();
+
 }//
     i++;
 }
@@ -66,12 +67,15 @@ if(i>23){ //
 void processing()
 {
   int 
+  x = read(0x17);
+
   x = read(0x08); temp = (x==-1) ? temp:x;
   x = read(0x09);voltage =(x==-1) ? voltage:x;
   x = read(0x0A);current =(x==-1) ? current:x;
   x = read(0x0F);capasity =(x==-1) ? capasity:x;
   x = read(0x10);base_capasity =(x==-1) ? base_capasity:x;
   x = read(0x3c);cycle =  (x==-1) ? cycle:x;
+
 
   }
 

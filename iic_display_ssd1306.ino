@@ -8,6 +8,7 @@
 #define LINES 3
 #define PWR_PIN 11
 #define GND_PIN 10
+#define REFRESH 16
 Adafruit_SSD1306 display(WIDTH, HEIGHT,&Wire);
 bool colour = 1;
 uint16_t i = 0;
@@ -49,7 +50,7 @@ display.clearDisplay();
 void loop() {
 
 
-if(i>23){ //
+if(i>REFRESH){ //
   processing();
   randomSeed(analogRead(colour)); i = 0; 
   display.fillRect(0,0,WIDTH,HEIGHT, colour);

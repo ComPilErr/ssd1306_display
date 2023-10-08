@@ -67,7 +67,7 @@ void processing()
   x = read(0x0A);current =(x==-1) ? current:x;
   x = read(0x0F);capasity =(x==-1) ? capasity:x;
   x = read(0x10);base_capasity =(x==-1) ? base_capasity:x;
-  x = read(0x3c);cycle =  (x==-1) ? cycle:x;
+  x = read(0x3d);cycle =  (x==-1) ? cycle:x;
 
   //if(current > 0)  {digitalWrite(PWR_PIN,LOW);delay(10);                    digitalWrite(PWR_PIN,HIGH);
   //                  digitalWrite(PWR_PIN,LOW);delay(10);                    digitalWrite(PWR_PIN,HIGH);}

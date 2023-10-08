@@ -1,92 +1,103 @@
+
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
-#include "pics.h"
 
 #define WIDTH 128
 #define HEIGHT 64
 #define ADDRESS 0x3C
 #define LINES 3
-#define PWR_PIN 11
-#define GND_PIN 10
 #define REFRESH 16
-Adafruit_SSD1306 display(WIDTH, HEIGHT,&Wire);
-bool colour = 1;
-uint16_t i = 0;
-byte register_to_call = 0;
 
-int voltage=0;
-int current=0;
-int capasity=0;
-int base_capasity=0;
-int temp=0;
-int cycle=0;
+#define SCL PB6
+#define SDA PB7
+bool colour = 1;
+
+int16_t voltage=0;
+int16_t current=0;
+int16_t capasity=0;
+int16_t base_capasity=0;
+int16_t temp=0;
+int16_t cycle=0;
+int dev;
+
+#define MY_LED_PIN PC13
+HardwareSerial My_Serial(PA10, PA9);
+TwoWire My_Wire(SDA,SCL);
+Adafruit_SSD1306 display(WIDTH, HEIGHT,&My_Wire);
 
 void setup() {
-
-pinMode(GND_PIN, OUTPUT);digitalWrite(GND_PIN,LOW);
-pinMode(PWR_PIN, OUTPUT);digitalWrite(PWR_PIN,LOW);
-Serial.begin(115200);
-if ( !display.begin(SSD1306_SWITCHCAPVCC, ADDRESS) ){Serial.println("Fuck off"); for(;;);}
-randomSeed(analogRead(0));
-display.clearDisplay();
-display.drawBitmap(32,0,apple,64,64,1);
-display.display();digitalWrite(PWR_PIN,HIGH);
-delay(2000); // Pause for 2 seconds
-
-display.clearDisplay();
-//display.invertDisplay(1);
-  scan();
-
-  for(int i=0;i<24;i++){
-  display.fillCircle(random(WIDTH)/2,random(HEIGHT)/2,i,colour);
-  display.fillCircle(WIDTH - random(WIDTH)/2,random(HEIGHT)/2,i,colour);
-  display.fillCircle(random(WIDTH)/2,HEIGHT - random(HEIGHT)/2,i,colour);
-  display.fillCircle(WIDTH - random(WIDTH)/2,HEIGHT -random(HEIGHT)/2,i,colour);
-  display.display();
-    }
-      display.fillRect(0,0,WIDTH,HEIGHT, colour);  display.display();
+  // initialize digital pin PB2 as an output.
+  delay(1000);
+  pinMode(MY_LED_PIN, OUTPUT); // LED connect to pin PB2
+  digitalWrite(MY_LED_PIN, HIGH);
+  My_Serial.begin(115200);
+  My_Serial.print("Another one bites the dust");
+  if ( !display.begin(SSD1306_SWITCHCAPVCC, ADDRESS) ){My_Serial.println("Fuck off"); for(;;);}
+  display.clearDisplay();
+  intro(1);  intro(0);
+  dev = scan();
+  intro(1);  intro(0);
 }
-
 void loop() {
-
-
-if(i>REFRESH){ //
+if (dev > 1)
+{
+  digitalWrite(MY_LED_PIN, LOW);
   processing();
-  randomSeed(analogRead(colour)); i = 0; 
+  digitalWrite(MY_LED_PIN, HIGH);
   display.fillRect(0,0,WIDTH,HEIGHT, colour);
- // display.display();
-//colour = !colour;
- clear();
-    
+  clear();
   show();
-
- display.display();
-
-}//
-
-    i++;
+  display.display();
+}
+else {  
+  digitalWrite(MY_LED_PIN, LOW);
+  delay(100);
+  digitalWrite(MY_LED_PIN, HIGH);
+  delay(900);
+  display.fillCircle(random(WIDTH),random(HEIGHT),random(5),colour);
+  display.display();}
 }
 
 void processing()
 {
-
-  int 
-  x = read(0x17);
+  int16_t x = read(0x17);
 
   x = read(0x08); temp = (x==-1) ? temp:x;
   x = read(0x09);voltage =(x==-1) ? voltage:x;
   x = read(0x0A);current =(x==-1) ? current:x;
   x = read(0x0F);capasity =(x==-1) ? capasity:x;
   x = read(0x10);base_capasity =(x==-1) ? base_capasity:x;
-  x = read(0x3c);cycle =  (x==-1) ? cycle:x;
+  x = read(0x3d);cycle =  (x==-1) ? cycle:x;
 
-  if(current > 0)  {digitalWrite(PWR_PIN,LOW);delay(10);                    digitalWrite(PWR_PIN,HIGH);
-                    digitalWrite(PWR_PIN,LOW);delay(10);                    digitalWrite(PWR_PIN,HIGH);}
+  //if(current > 0)  {digitalWrite(PWR_PIN,LOW);delay(10);                    digitalWrite(PWR_PIN,HIGH);
+  //                  digitalWrite(PWR_PIN,LOW);delay(10);                    digitalWrite(PWR_PIN,HIGH);}
+  }
 
+int read(byte address){
+  while (My_Wire.available()){My_Wire.read();delay(10);}
+  
+  My_Wire.beginTransmission(0x0B);
+  My_Wire.write(byte(address));
+  My_Wire.endTransmission();  
+  
+  My_Wire.requestFrom(0x0B, 2);delay(10);
+   int16_t k = 0;
+   byte b1 = 0;
+   byte b2 = 0;
+
+    if (My_Wire.available()){    
+      b1 =  My_Wire.read();      delay(10);
+          if (My_Wire.available()){
+              b2 =  My_Wire.read(); 
+              __disable_irq();
+              k = b2<<8;  k+=b1;
+              __enable_irq();
+              return k; }
+      }    
+  return -1;
   }
 
 void show(){
-  
   display.setTextSize(1); display.setTextColor(2); display.setCursor(80,0);
   display.print("temp:");
   display.setTextSize(1); display.setTextColor(2); display.setCursor(80,10);
@@ -111,56 +122,34 @@ void show(){
 
   display.setTextSize(1); display.setTextColor(2); display.setCursor(80,24);
   display.print(cycle);
-
-
-
   }
-
 
 void clear(){
   display.clearDisplay();
   display.setCursor(0,0); 
   }
 
-int read(byte address){
-
-  while (Wire.available()){Wire.read();delay(10);}
-  Wire.beginTransmission(0x0B);
-  Wire.write(byte(address));
-  Wire.endTransmission();  Wire.requestFrom(0x0B, 2);delay(10);
-   int k = 0;int i = 0;
-   byte b1 = 0;
-   byte b2 = 0;
-
-    if (Wire.available()){    
-      b1 =  Wire.read();      delay(10);
-          if (Wire.available()){
-              b2 =  Wire.read(); 
-              cli();  k = b2<<8;  k+=b1;  sei(); return k; }
-      }
-      
-  return -1;
-  }
-
-void fun()
-{//display.setTextSize(2); display.setTextColor(2); display.setCursor(38,24);
-//display.println("MeoW");
-//display.drawBitmap(0,0,logo,128,64,colour);
-display.drawBitmap(32,0,apple,64,64,colour);
-display.display();delay(600);
-//display.drawBitmap(32,0,apple,64,64,!colour);
-//display.setCursor(32,24);//display.setTextColor(2);display.println("GoPro");display.display();delay(500);
+void intro(int colour)
+{
+    for(int i=0;i<24;i++){
+    display.fillCircle(random(WIDTH)/2,random(HEIGHT)/2,i,colour);
+    display.fillCircle(WIDTH - random(WIDTH)/2,random(HEIGHT)/2,i,colour);
+    display.fillCircle(random(WIDTH)/2,HEIGHT - random(HEIGHT)/2,i,colour);
+    display.fillCircle(WIDTH - random(WIDTH)/2,HEIGHT -random(HEIGHT)/2,i,colour);
+    display.display();
+    }
+  display.fillRect(0,0,WIDTH,HEIGHT, colour);  display.display();
 }
 
-void scan(){
-    int nDevices = 0;
-display.setTextSize(1); display.setTextColor(2); display.setCursor(0,0);
+int scan(){
+  int nDevices = 0;
+  display.setTextSize(1); display.setTextColor(2); display.setCursor(0,0);
   display.println("Scanning...");
 
   for (byte address = 1; address < 127; ++address) {
 
-    Wire.beginTransmission(address);
-    byte error = Wire.endTransmission();
+    My_Wire.beginTransmission(address);
+    byte error = My_Wire.endTransmission();
 
     if (error == 0) {
       display.print("I2C device: 0x");
@@ -187,5 +176,6 @@ display.setTextSize(1); display.setTextColor(2); display.setCursor(0,0);
     display.println(" devices found");
   }
   display.display();
-  delay(1000); // Wait 5 seconds for next scan
+  delay(3000); // Wait 5 seconds for next scan
+  return nDevices;
   }

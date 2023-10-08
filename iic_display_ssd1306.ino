@@ -11,7 +11,6 @@
 #define SCL PB6
 #define SDA PB7
 bool colour = 1;
-uint16_t i = 0;
 
 int voltage=0;
 int current=0;
@@ -28,9 +27,11 @@ Adafruit_SSD1306 display(WIDTH, HEIGHT,&My_Wire);
 
 void setup() {
   // initialize digital pin PB2 as an output.
+  delay(1000);
   pinMode(MY_LED_PIN, OUTPUT); // LED connect to pin PB2
   digitalWrite(MY_LED_PIN, HIGH);
   My_Serial.begin(115200);
+  My_Serial.print("Another one bites the dust");
   if ( !display.begin(SSD1306_SWITCHCAPVCC, ADDRESS) ){My_Serial.println("Fuck off"); for(;;);}
   display.clearDisplay();
   intro(1);  intro(0);
@@ -40,8 +41,6 @@ void setup() {
 void loop() {
 if (dev > 1)
 {
-if( i>REFRESH )
-  {
   digitalWrite(MY_LED_PIN, LOW);
   processing();
   digitalWrite(MY_LED_PIN, HIGH);
@@ -49,10 +48,6 @@ if( i>REFRESH )
   clear();
   show();
   display.display();
-  }
-    i++;
-    My_Serial.print("Another one bites the dust: ");
-    My_Serial.println(i);
 }
 else {  
   digitalWrite(MY_LED_PIN, LOW);
@@ -65,7 +60,6 @@ else {
 
 void processing()
 {
-  i = 0; 
   int x = read(0x17);
 
   x = read(0x08); temp = (x==-1) ? temp:x;

@@ -12,12 +12,12 @@
 #define SDA PB7
 bool colour = 1;
 
-int voltage=0;
-int current=0;
-int capasity=0;
-int base_capasity=0;
-int temp=0;
-int cycle=0;
+int16_t voltage=0;
+int16_t current=0;
+int16_t capasity=0;
+int16_t base_capasity=0;
+int16_t temp=0;
+int16_t cycle=0;
 int dev;
 
 #define MY_LED_PIN PC13
@@ -60,7 +60,7 @@ else {
 
 void processing()
 {
-  int x = read(0x17);
+  int16_t x = read(0x17);
 
   x = read(0x08); temp = (x==-1) ? temp:x;
   x = read(0x09);voltage =(x==-1) ? voltage:x;
@@ -81,7 +81,7 @@ int read(byte address){
   My_Wire.endTransmission();  
   
   My_Wire.requestFrom(0x0B, 2);delay(10);
-   int k = 0;int i = 0;
+   int16_t k = 0;
    byte b1 = 0;
    byte b2 = 0;
 

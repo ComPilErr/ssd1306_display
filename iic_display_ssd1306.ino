@@ -8,8 +8,18 @@
 #define LINES 3
 #define REFRESH 16
 
+#define BATTERY 0x0B
+
 #define SCL PB6
 #define SDA PB7
+
+#define RX PA10
+#define TX PA9
+
+#define MY_LED_PIN PC13
+
+#define I2C_DEVICES_MAX 8
+
 bool colour = 1;
 
 int16_t voltage=0;
@@ -18,28 +28,31 @@ int16_t capasity=0;
 int16_t base_capasity=0;
 int16_t temp=0;
 int16_t cycle=0;
-int dev;
 
-#define MY_LED_PIN PC13
-HardwareSerial My_Serial(PA10, PA9);
-TwoWire My_Wire(SDA,SCL);
+HardwareSerial My_Serial(RX, TX);
+TwoWire My_Wire(SDA, SCL);
 Adafruit_SSD1306 display(WIDTH, HEIGHT,&My_Wire);
 
+byte device_array[I2C_DEVICES_MAX];
+
 void setup() {
-  // initialize digital pin PB2 as an output.
-  delay(1000);
-  pinMode(MY_LED_PIN, OUTPUT); // LED connect to pin PB2
-  digitalWrite(MY_LED_PIN, HIGH);
+
   My_Serial.begin(115200);
-  My_Serial.print("Another one bites the dust");
-  if ( !display.begin(SSD1306_SWITCHCAPVCC, ADDRESS) ){My_Serial.println("Fuck off"); for(;;);}
+  My_Serial.println("Starting initialization...");
+  memset(device_array,0,sizeof(byte)*I2C_DEVICES_MAX);
+  delay(1000);
+  pinMode(MY_LED_PIN, OUTPUT);
+  digitalWrite(MY_LED_PIN, HIGH);
+
+  if ( !display.begin(SSD1306_SWITCHCAPVCC, ADDRESS) ){My_Serial.println("Error display initialisation"); for(;;);}
   display.clearDisplay();
   intro(1);  intro(0);
-  dev = scan();
+  scan();
   intro(1);  intro(0);
 }
+
 void loop() {
-if (dev > 1)
+if (read_device(BATTERY))
 {
   digitalWrite(MY_LED_PIN, LOW);
   processing();
@@ -48,6 +61,7 @@ if (dev > 1)
   clear();
   show();
   display.display();
+  My_Serial.println( String((float)voltage/1000) + " | " + String((float) current/1000) + " | " + String((((float) temp)/10)-273.15) + " | " + String((int) (((float) capasity/base_capasity )*100)) + " | " + String(cycle));
 }
 else {  
   digitalWrite(MY_LED_PIN, LOW);
@@ -69,8 +83,6 @@ void processing()
   x = read(0x10);base_capasity =(x==-1) ? base_capasity:x;
   x = read(0x3d);cycle =  (x==-1) ? cycle:x;
 
-  //if(current > 0)  {digitalWrite(PWR_PIN,LOW);delay(10);                    digitalWrite(PWR_PIN,HIGH);
-  //                  digitalWrite(PWR_PIN,LOW);delay(10);                    digitalWrite(PWR_PIN,HIGH);}
   }
 
 int read(byte address){
@@ -141,6 +153,15 @@ void intro(int colour)
   display.fillRect(0,0,WIDTH,HEIGHT, colour);  display.display();
 }
 
+int read_device(byte x)
+{
+for (int i=0; i<I2C_DEVICES_MAX; i++)
+  {
+    if (device_array[i] == x) return 1;
+  }
+return 0;
+}
+
 int scan(){
   int nDevices = 0;
   display.setTextSize(1); display.setTextColor(2); display.setCursor(0,0);
@@ -158,7 +179,7 @@ int scan(){
       }
       display.print(address, HEX);
       display.println();
-
+      device_array[nDevices] = address;
       ++nDevices;
     } else if (error == 4) {
       display.print("Unknown error: 0x");
@@ -176,6 +197,6 @@ int scan(){
     display.println(" devices found");
   }
   display.display();
-  delay(3000); // Wait 5 seconds for next scan
+  delay(3000); // Hold on a moment
   return nDevices;
   }

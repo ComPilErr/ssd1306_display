@@ -18,7 +18,7 @@
 
 #define MY_LED_PIN PC13
 
-#define I2C_DEVICES_MAX 8
+#define I2C_DEVICES_MAX 4
 
 bool colour = 1;
 
@@ -179,7 +179,12 @@ int scan(){
       }
       display.print(address, HEX);
       display.println();
-      device_array[nDevices] = address;
+      
+      if (nDevices < I2C_DEVICES_MAX)     
+      { device_array[nDevices] = address; }
+      else 
+      { My_Serial.println("Too much devices detected... it's: " + String(nDevices) + ", but maximum is set to: " + String(I2C_DEVICES_MAX));  }
+      
       ++nDevices;
     } else if (error == 4) {
       display.print("Unknown error: 0x");

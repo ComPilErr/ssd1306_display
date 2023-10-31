@@ -1,6 +1,7 @@
 
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
+#include <stm32f1_rtc.h>
 
 #define WIDTH 128
 #define HEIGHT 64
@@ -34,11 +35,12 @@ TwoWire My_Wire(SDA, SCL);
 Adafruit_SSD1306 display(WIDTH, HEIGHT,&My_Wire);
 
 byte device_array[I2C_DEVICES_MAX];
+STM32F1_RTC rtc;
 
 void setup() {
-
   My_Serial.begin(115200);
   My_Serial.println("Starting initialization...");
+  rtc.begin();  rtc.init();
   memset(device_array,0,sizeof(byte)*I2C_DEVICES_MAX);
   delay(1000);
   pinMode(MY_LED_PIN, OUTPUT);
@@ -61,7 +63,7 @@ if (read_device(BATTERY))
   clear();
   show();
   display.display();
-  My_Serial.println( String((float)voltage/1000) + " | " + String((float) current/1000) + " | " + String((((float) temp)/10)-273.15) + " | " + String((int) (((float) capasity/base_capasity )*100)) + " | " + String(cycle));
+  My_Serial.println( String(rtc.getTime()) + ":" + String(rtc.getMilliseconds()) + " | " + String((float)voltage/1000) + " | " + String((float) current/1000) + " | " + String((((float) temp)/10)-273.15) + " | " + String((int) (((float) capasity/base_capasity )*100)) + " | " + String(cycle));
 }
 else {  
   digitalWrite(MY_LED_PIN, LOW);

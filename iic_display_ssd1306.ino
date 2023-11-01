@@ -36,6 +36,7 @@ Adafruit_SSD1306 display(WIDTH, HEIGHT,&My_Wire);
 
 byte device_array[I2C_DEVICES_MAX];
 STM32F1_RTC rtc;
+volatile bool loop_type = 0;
 
 void setup() {
   My_Serial.begin(115200);
@@ -45,17 +46,25 @@ void setup() {
   delay(1000);
   pinMode(MY_LED_PIN, OUTPUT);
   digitalWrite(MY_LED_PIN, HIGH);
-
   if ( !display.begin(SSD1306_SWITCHCAPVCC, ADDRESS) ){My_Serial.println("Error display initialisation"); for(;;);}
   display.clearDisplay();
   intro(1);  intro(0);
   scan();
+  loop_type = read_device(BATTERY);
   intro(1);  intro(0);
 }
 
 void loop() {
-if (read_device(BATTERY))
-{
+switch(loop_type) {
+case 0: 
+  digitalWrite(MY_LED_PIN, LOW);
+  delay(100);
+  digitalWrite(MY_LED_PIN, HIGH);
+  delay(900);
+  display.fillCircle(random(WIDTH),random(HEIGHT),random(5),colour);
+  display.display();
+break;
+case 1: 
   digitalWrite(MY_LED_PIN, LOW);
   processing();
   digitalWrite(MY_LED_PIN, HIGH);
@@ -64,14 +73,9 @@ if (read_device(BATTERY))
   show();
   display.display();
   My_Serial.println( String(rtc.getTime()) + ":" + String(rtc.getMilliseconds()) + " | " + String((float)voltage/1000) + " | " + String((float) current/1000) + " | " + String((((float) temp)/10)-273.15) + " | " + String((int) (((float) capasity/base_capasity )*100)) + " | " + String(cycle));
-}
-else {  
-  digitalWrite(MY_LED_PIN, LOW);
-  delay(100);
-  digitalWrite(MY_LED_PIN, HIGH);
-  delay(900);
-  display.fillCircle(random(WIDTH),random(HEIGHT),random(5),colour);
-  display.display();}
+break;
+
+  }
 }
 
 void processing()
@@ -155,7 +159,7 @@ void intro(int colour)
   display.fillRect(0,0,WIDTH,HEIGHT, colour);  display.display();
 }
 
-int read_device(byte x)
+bool read_device(byte x)
 {
 for (int i=0; i<I2C_DEVICES_MAX; i++)
   {
